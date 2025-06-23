@@ -1,104 +1,168 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'login_page.dart';
+import '../controllers/auth_controller.dart';
+import '../controllers/home_controller.dart';
+import '../routes/app_routes.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  String? _username;
-  bool _isLoadingProfile = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserProfile();
-  }
-
-  Future<void> _loadUserProfile() async {
-    setState(() {
-      _isLoadingProfile = true;
-    });
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user != null) {
-        final response = await Supabase.instance.client
-            .from('profiles')
-            .select('username')
-            .eq('id', user.id)
-            .single();
-        setState(() {
-          _username = response['username'] as String?;
-        });
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat profil: $e');
-    } finally {
-      setState(() {
-        _isLoadingProfile = false;
-      });
-    }
-  }
-
-  Future<void> _signOut() async {
-    try {
-      await Supabase.instance.client.auth.signOut();
-      Get.offAll(() => const LoginPage());
-    } on AuthException catch (e) {
-      Get.snackbar('Error Logout', e.message);
-    } catch (e) {
-      Get.snackbar('Error', 'Terjadi kesalahan saat logout: $e');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Pastikan AuthController dan HomeController terinisialisasi
+    if (Get.find<AuthController>() == null) Get.put(AuthController());
+    if (Get.find<HomeController>() == null) Get.put(HomeController());
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Beranda WashApp'),
+        title: const Text('Reservasi Cuci Kendaraan'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => controller.fetchReservations(),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-            tooltip: 'Logout',
+            onPressed: () {
+              Get.find<AuthController>().signOut();
+            },
           ),
         ],
       ),
-      body: Center(
-        child: _isLoadingProfile
-            ? const CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _username != null
-                        ? 'Selamat datang, $_username!'
-                        : 'Selamat datang di WashApp!',
-                    style: Get.textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ini adalah halaman utama aplikasi Anda.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.snackbar(
-                        'Info',
-                        'Fitur reservasi akan segera hadir!',
-                      );
-                    },
-                    child: const Text('Buat Reservasi Cuci'),
-                  ),
-                ],
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.blueAccent),
+              child: Obx(
+                () => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person,
+                        size: 40,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Halo, ${controller.userName.value.isEmpty ? 'Pengguna' : controller.userName.value}',
+                      style: const TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Text(
+                      Get.find<AuthController>().currentUser?.email ??
+                          'Tidak ada Email',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Beranda'),
+              onTap: () {
+                Get.back(); // Close drawer
+                // Already on home, no need to navigate
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profil Saya'),
+              onTap: () {
+                Get.back(); // Close drawer
+                Get.toNamed(AppRoutes.PROFILE);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text('Logout'),
+              onTap: () {
+                Get.back(); // Close drawer
+                Get.find<AuthController>().signOut();
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.reservations.isEmpty) {
+          return const Center(
+            child: Text('Belum ada reservasi. Buat reservasi pertama Anda!'),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: controller.reservations.length,
+          itemBuilder: (context, index) {
+            final reservation = controller.reservations[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Jenis Kendaraan: ${reservation.vehicleType}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Plat Nomor: ${reservation.vehiclePlatNumber}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tanggal & Waktu: ${controller.formatReservationDateTime(reservation.reservationDate, reservation.reservationTime)}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Status: ${reservation.status.capitalizeFirst}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: reservation.status == 'pending'
+                            ? Colors.orange
+                            : reservation.status == 'confirmed'
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.toNamed(AppRoutes.NEW_RESERVATION);
+        },
+        label: const Text('Reservasi Baru'),
+        icon: const Icon(Icons.add),
+        backgroundColor: Colors.blueAccent,
       ),
     );
   }

@@ -1,85 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'home_page.dart';
-import 'register_page.dart';
+import '../controllers/auth_controller.dart';
+import '../routes/app_routes.dart';
+import '../widgets/custom_text_field.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends GetView<AuthController> {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _signIn() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final AuthResponse response = await Supabase.instance.client.auth
-          .signInWithPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
-      if (response.user != null) {
-        Get.snackbar('Berhasil', 'Login berhasil!');
-        Get.offAll(() => const HomePage());
-      }
-    } on AuthException catch (e) {
-      Get.snackbar('Error Login', e.message);
-    } catch (e) {
-      Get.snackbar('Error', 'Terjadi kesalahan tidak dikenal: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Pastikan AuthController terinisialisasi
+    if (Get.find<AuthController>() == null) {
+      Get.put(AuthController());
+    }
+
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(title: const Text('Login ke WashApp'), centerTitle: true),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+            const SizedBox(height: 50),
+            Image.asset(
+              'assets/images/logo_mobil.png', // Pastikan path ini benar
+              height: 100,
+            ),
+            const SizedBox(height: 30),
+            CustomTextField(
+              controller: emailController,
+              labelText: 'Email',
               keyboardType: TextInputType.emailAddress,
+              prefixIcon: Icons.email,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+            const SizedBox(height: 20),
+            CustomTextField(
+              controller: passwordController,
+              labelText: 'Password',
               obscureText: true,
+              prefixIcon: Icons.lock,
             ),
-            const SizedBox(height: 24),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _signIn,
-                    child: const Text('Login'),
+            const SizedBox(height: 30),
+            Obx(
+              () => ElevatedButton(
+                onPressed: controller.isLoading.value
+                    ? null
+                    : () {
+                        controller.signIn(
+                          email: emailController.text.trim(),
+                          password: passwordController.text.trim(),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  backgroundColor: Colors.blueAccent,
+                ),
+                child: controller.isLoading.value
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Login',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Get.to(() => const RegisterPage());
+                Get.toNamed(AppRoutes.REGISTER);
               },
-              child: const Text('Belum punya akun? Daftar di sini'),
+              child: const Text(
+                'Belum punya akun? Daftar sekarang',
+                style: TextStyle(color: Colors.blueAccent),
+              ),
             ),
           ],
         ),

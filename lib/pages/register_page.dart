@@ -1,116 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'login_page.dart';
+import '../controllers/auth_controller.dart';
+import '../widgets/custom_text_field.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends GetView<AuthController> {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
-}
-
-class _RegisterPageState extends State<RegisterPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _fullNameController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _signUp() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final AuthResponse response = await Supabase.instance.client.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      if (response.user != null) {
-        await Supabase.instance.client.from('profiles').insert({
-          'id': response.user!.id,
-          'username': _usernameController.text.trim(),
-          'full_name': _fullNameController.text.trim(),
-          'phone_number': _phoneNumberController.text.trim(),
-        });
-        Get.snackbar('Berhasil', 'Registrasi berhasil! Silakan login.');
-        Get.offAll(() => const LoginPage());
-      }
-    } on AuthException catch (e) {
-      Get.snackbar('Error Registrasi', e.message);
-    } catch (e) {
-      Get.snackbar('Error', 'Terjadi kesalahan tidak dikenal: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _fullNameController.dispose();
-    _usernameController.dispose();
-    _phoneNumberController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Pastikan AuthController terinisialisasi
+    if (Get.find<AuthController>() == null) {
+      Get.put(AuthController());
+    }
+
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController usernameController = TextEditingController();
+    final TextEditingController fullNameController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _fullNameController,
-                decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+      appBar: AppBar(title: const Text('Daftar Akun Baru'), centerTitle: true),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            CustomTextField(
+              controller: emailController,
+              labelText: 'Email',
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: Icons.email,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              controller: passwordController,
+              labelText: 'Password',
+              obscureText: true,
+              prefixIcon: Icons.lock,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              controller: usernameController,
+              labelText: 'Username',
+              prefixIcon: Icons.person_outline,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              controller: fullNameController,
+              labelText: 'Nama Lengkap',
+              prefixIcon: Icons.badge,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              controller: phoneController,
+              labelText: 'Nomor Telepon',
+              keyboardType: TextInputType.phone,
+              prefixIcon: Icons.phone,
+            ),
+            const SizedBox(height: 30),
+            Obx(
+              () => ElevatedButton(
+                onPressed: controller.isLoading.value
+                    ? null
+                    : () {
+                        controller.signUp(
+                          email: emailController.text.trim(),
+                          password: passwordController.text.trim(),
+                          username: usernameController.text.trim(),
+                          fullName: fullNameController.text.trim(),
+                          phoneNumber: phoneController.text.trim(),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.blueAccent,
+                ),
+                child: controller.isLoading.value
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Daftar',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
+            ),
+            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () {
+                Get.back(); // Kembali ke halaman login
+              },
+              child: const Text(
+                'Sudah punya akun? Login',
+                style: TextStyle(color: Colors.blueAccent),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Nomor Telepon'),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _signUp,
-                      child: const Text('Daftar'),
-                    ),
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                },
-                child: const Text('Sudah punya akun? Login di sini'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
