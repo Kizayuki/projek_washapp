@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'splash_screen.dart';
+import 'pages/splash_screen.dart';
 
 const SUPABASE_URL = 'https://pdylbgcpupuxsdpmdssn.supabase.co';
 const SUPABASE_ANON_KEY =
