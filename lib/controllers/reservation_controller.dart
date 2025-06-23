@@ -43,7 +43,7 @@ class ReservationController extends GetxController {
       context: context,
       initialDate: selectedDate.value ?? DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 90)), // Batasi hingga 90 hari ke depan
+      lastDate: DateTime.now().add(const Duration(days: 90)),
     );
     if (picked != null && picked != selectedDate.value) {
       selectedDate.value = picked;
@@ -76,7 +76,7 @@ class ReservationController extends GetxController {
     if (vehiclePlatNumberController.text.trim().isEmpty) {
       return 'Harap masukkan nomor plat kendaraan.';
     }
-    return null; // Validasi berhasil
+    return null;
   }
 
   Future<void> createReservation() async {
@@ -102,13 +102,13 @@ class ReservationController extends GetxController {
         'service_id': selectedService.value!.id,
         'reservation_date': selectedDate.value!.toIso8601String().split('T').first,
         'reservation_time': reservationTimeFormatted,
-        'status': 'pending', // Default status
+        'status': 'pending',
         'vehicle_type': vehicleTypeController.text.trim(),
         'vehicle_plat_number': vehiclePlatNumberController.text.trim(),
       });
 
       showSnackbar('Berhasil', 'Reservasi berhasil dibuat!');
-      Get.offAllNamed(AppRoutes.HOME); // Kembali ke halaman utama setelah reservasi
+      Get.offAllNamed(AppRoutes.HOME);
     } catch (e) {
       showSnackbar('Error', 'Gagal membuat reservasi: $e', isError: true);
     } finally {

@@ -25,7 +25,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.HOME,
       page: () => const HomePage(),
-      middlewares: [AuthRequiredGuard()], // Lindungi rute ini
+      middlewares: [AuthRequiredGuard()],
     ),
     GetPage(
       name: AppRoutes.NEW_RESERVATION,

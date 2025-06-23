@@ -8,10 +8,8 @@ class AuthController extends GetxController {
   final GetStorage _box = GetStorage();
   RxBool isLoading = false.obs;
 
-  // Mendapatkan sesi pengguna saat ini dari GetStorage jika ada
-  // Ini lebih untuk persistensi UI. Supabase sendiri sudah persistensi sesi.
   User? get currentUser => supabase.auth.currentUser;
-  RxString? currentUserName = RxString('').obs; // Untuk menampilkan nama di UI
+  RxString? currentUserName = RxString('').obs;
 
   @override
   void onInit() {
@@ -33,11 +31,10 @@ class AuthController extends GetxController {
           Get.offAllNamed(AppRoutes.HOME);
         }
       } else if (event == AuthChangeEvent.signedOut) {
-        _box.remove('user_name'); // Hapus nama dari storage saat logout
+        _box.remove('user_name');
         currentUserName?.value = '';
         Get.offAllNamed(AppRoutes.LOGIN);
       } else if (event == AuthChangeEvent.userUpdated) {
-        // Handle user profile updates if needed
         if (session != null) {
           _fetchAndStoreUserProfile(session.user!.id);
         }
@@ -88,10 +85,9 @@ class AuthController extends GetxController {
       );
 
       if (response.user != null) {
-        // Masukkan data profil ke tabel 'profiles'
         await supabase.from('profiles').insert({
           'id': response.user!.id,
-          'email': email, // Opsional, Supabase Auth sudah punya
+          'email': email,
           'username': username,
           'full_name': fullName,
           'phone_number': phoneNumber,
@@ -100,7 +96,6 @@ class AuthController extends GetxController {
         showSnackbar('Berhasil', 'Pendaftaran berhasil! Silakan login.');
         Get.offAllNamed(AppRoutes.LOGIN);
       } else if (response.user == null && response.session == null) {
-        // Ini mungkin terjadi jika konfirmasi email diperlukan
         showSnackbar('Pendaftaran Berhasil', 'Silakan cek email Anda untuk verifikasi.', isError: false);
         Get.offAllNamed(AppRoutes.LOGIN);
       }
@@ -127,7 +122,7 @@ class AuthController extends GetxController {
       );
 
       if (response.user != null) {
-        await _fetchAndStoreUserProfile(response.user!.id); // Fetch and store profile
+        await _fetchAndStoreUserProfile(response.user!.id);
         showSnackbar('Berhasil', 'Anda berhasil login!');
         Get.offAllNamed(AppRoutes.HOME);
       }
@@ -147,7 +142,7 @@ class AuthController extends GetxController {
     try {
       await supabase.auth.signOut();
       showSnackbar('Berhasil', 'Anda berhasil logout!');
-      _box.remove('user_name'); // Hapus nama dari storage saat logout
+      _box.remove('user_name');
       currentUserName?.value = '';
       Get.offAllNamed(AppRoutes.LOGIN);
     } on AuthException catch (e) {
