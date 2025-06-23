@@ -3,7 +3,7 @@ class Reservation {
   final String userId;
   final String serviceId;
   final DateTime reservationDate;
-  final String reservationTime; // Format HH:mm
+  final String reservationTime;
   final String status;
   final String vehicleType;
   final String vehiclePlatNumber;

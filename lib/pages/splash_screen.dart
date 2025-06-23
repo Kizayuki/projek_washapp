@@ -1,44 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'home_page.dart';
-import 'login_page.dart';
+import '../controllers/splash_controller.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _redirect();
-  }
-
-  Future<void> _redirect() async {
-    await Future.delayed(const Duration(seconds: 3));
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
-      Get.off(() => const LoginPage());
-    } else {
-      Get.off(() => const HomePage());
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.put(SplashController());
+
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/logo_mobil.png', width: 150, height: 150),
+            Image.asset(
+              'assets/logo_mobil.png',
+              width: 150,
+              height: 150,
+            ),
             const SizedBox(height: 20),
-            const CircularProgressIndicator(),
+            const Text(
+              'WashApp',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+            ),
+            const SizedBox(height: 30),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+            ),
+            const SizedBox(height: 10),
+            const Text('Memuat aplikasi...', style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),

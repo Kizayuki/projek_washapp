@@ -6,17 +6,15 @@ import 'package:intl/intl.dart';
 class HomeController extends GetxController {
   RxList<Reservation> reservations = <Reservation>[].obs;
   RxBool isLoading = true.obs;
-  RxString userName = ''.obs; // Untuk menampilkan nama user di home
+  RxString userName = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchReservations();
-    // Mengambil nama pengguna dari AuthController
     if (Get.find<AuthController>().currentUserName?.value != null) {
       userName.value = Get.find<AuthController>().currentUserName!.value;
     }
-    // Mendengarkan perubahan nama pengguna dari AuthController
     ever(Get.find<AuthController>().currentUserName!, (String? newName) {
       if (newName != null) {
         userName.value = newName;

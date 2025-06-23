@@ -11,15 +11,15 @@ class SplashController extends GetxController {
   }
 
   Future<void> _redirect() async {
-    await Future.delayed(const Duration(seconds: 3)); // Durasi splash screen
+    await Future.delayed(const Duration(seconds: 3));
 
     final session = supabase.auth.currentSession;
     if (session == null) {
       Get.offAllNamed(
         AppRoutes.LOGIN,
-      ); // Pengguna belum login, arahkan ke Login
+      );
     } else {
-      Get.offAllNamed(AppRoutes.HOME); // Pengguna sudah login, arahkan ke Home
+      Get.offAllNamed(AppRoutes.HOME);
     }
   }
 }
