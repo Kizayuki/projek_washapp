@@ -52,7 +52,7 @@ class _AdminViewReservationsPageState extends State<AdminViewReservationsPage> {
                   ),
                 ),
                 subtitle: Text(
-                  '${reservation.reservationDate.toIso8601String().split('T')[0]} - ${reservation.reservationTime.substring(0, 5)}',
+                  '${reservation.reservationDate.toIso8601String().split('T')[0]} - ${reservation.reservationTime.length >= 5 ? reservation.reservationTime.substring(0, 5) : reservation.reservationTime}',
                 ),
                 trailing: Chip(
                   label: Text(reservation.status.capitalizeFirst ?? 'Unknown'),

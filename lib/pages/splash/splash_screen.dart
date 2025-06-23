@@ -40,12 +40,6 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 20),
             const CircularProgressIndicator(),
             const SizedBox(height: 20),
-            Text(
-              AppConstants.appName,
-              style: Get.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ],
         ),
       ),
