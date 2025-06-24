@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/service_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/service_model.dart';
 
 class AdminManageServicesPage extends GetView<ServiceController> {
@@ -9,6 +10,16 @@ class AdminManageServicesPage extends GetView<ServiceController> {
   @override
   Widget build(BuildContext context) {
     Get.put(ServiceController());
+    final AuthController authController = Get.find<AuthController>();
+
+    if (!authController.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed('/home');
+        Get.snackbar('Akses Ditolak', 'Anda tidak memiliki izin admin.');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     controller.fetchServices();
 
     return Scaffold(

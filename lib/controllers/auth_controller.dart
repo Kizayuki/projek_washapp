@@ -1,28 +1,56 @@
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/app_routes.dart';
+import '../models/profile_model.dart';
 
 class AuthController extends GetxController {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
   Rx<User?> currentUser = Rx<User?>(null);
   RxBool isLoading = false.obs;
+  Rx<Profile?> currentProfile = Rx<Profile?>(null);
 
   @override
   void onInit() {
     super.onInit();
-    currentUser.value = _supabaseClient.auth.currentUser;
+    _initAuthListener();
+  }
 
-    _supabaseClient.auth.onAuthStateChange.listen((data) {
+  void _initAuthListener() {
+    _supabaseClient.auth.onAuthStateChange.listen((data) async {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
       if (event == AuthChangeEvent.signedIn ||
           event == AuthChangeEvent.initialSession) {
         currentUser.value = session?.user;
+        if (session?.user != null) {
+          await _fetchCurrentProfile(session!.user!.id);
+          if (currentProfile.value?.isAdmin == true) {
+            Get.offAllNamed(AppRoutes.adminDashboard);
+          } else {
+            Get.offAllNamed(AppRoutes.home);
+          }
+        }
       } else if (event == AuthChangeEvent.signedOut) {
         currentUser.value = null;
+        currentProfile.value = null;
+        Get.offAllNamed(AppRoutes.login);
       }
     });
+  }
+
+  Future<void> _fetchCurrentProfile(String userId) async {
+    try {
+      final response = await _supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+      currentProfile.value = Profile.fromJson(response as Map<String, dynamic>);
+    } catch (e) {
+      Get.snackbar('Error Profil', 'Gagal memuat data profil: $e');
+      currentProfile.value = null;
+    }
   }
 
   Future<void> signIn(String email, String password) async {
@@ -32,7 +60,6 @@ class AuthController extends GetxController {
           .signInWithPassword(email: email, password: password);
       if (response.user != null) {
         Get.snackbar('Berhasil', 'Login berhasil!');
-        Get.offAllNamed(AppRoutes.home);
       }
     } on AuthException catch (e) {
       Get.snackbar('Error Login', e.message);
@@ -63,6 +90,7 @@ class AuthController extends GetxController {
           'username': username,
           'full_name': fullName,
           'phone_number': phoneNumber,
+          'is_admin': false,
         });
         Get.snackbar('Berhasil', 'Registrasi berhasil! Silakan login.');
         Get.offAllNamed(AppRoutes.login);
@@ -80,7 +108,6 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       await _supabaseClient.auth.signOut();
-      Get.offAllNamed(AppRoutes.login);
       Get.snackbar('Berhasil', 'Logout berhasil!');
     } on AuthException catch (e) {
       Get.snackbar('Error Logout', e.message);
@@ -90,4 +117,6 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  bool get isAdmin => currentProfile.value?.isAdmin ?? false;
 }

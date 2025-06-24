@@ -104,6 +104,23 @@ class HomePage extends GetView<AuthController> {
                 Get.toNamed(AppRoutes.myReservations);
               },
             ),
+            Obx(
+              () => controller.isAdmin
+                  ? Column(
+                      children: [
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.admin_panel_settings),
+                          title: const Text('Dashboard Admin'),
+                          onTap: () {
+                            Get.back();
+                            Get.toNamed(AppRoutes.adminDashboard);
+                          },
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

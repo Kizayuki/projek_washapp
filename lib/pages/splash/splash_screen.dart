@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../controllers/auth_controller.dart';
 import '../../utils/app_constants.dart';
-import '../../utils/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,20 +11,16 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final AuthController _authController = Get.find<AuthController>();
+
   @override
   void initState() {
     super.initState();
-    _redirect();
-  }
-
-  Future<void> _redirect() async {
-    await Future.delayed(const Duration(seconds: 3));
-    final authController = Get.find<AuthController>();
-    if (authController.currentUser.value == null) {
-      Get.offAllNamed(AppRoutes.login);
-    } else {
-      Get.offAllNamed(AppRoutes.home);
-    }
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_authController.currentUser.value == null && !Get.isSnackbarOpen) {
+        Get.offAllNamed('/login');
+      }
+    });
   }
 
   @override
