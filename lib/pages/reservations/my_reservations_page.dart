@@ -12,6 +12,7 @@ class MyReservationsPage extends StatefulWidget {
 }
 
 class _MyReservationsPageState extends State<MyReservationsPage> {
+  // Pastikan Get.find() dipanggil setelah controller diinisialisasi
   final ReservationController _reservationController =
       Get.find<ReservationController>();
   final String? userId = Supabase.instance.client.auth.currentUser?.id;
