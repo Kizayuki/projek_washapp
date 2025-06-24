@@ -13,7 +13,6 @@ import 'pages/profile/profile_page.dart';
 import 'pages/services/service_list_page.dart';
 import 'pages/reservations/reservation_page.dart';
 import 'pages/reservations/my_reservations_page.dart';
-import 'pages/admin/admin_login_page.dart';
 import 'pages/admin/admin_dashboard_page.dart';
 import 'pages/admin/admin_manage_services_page.dart';
 import 'pages/admin/admin_view_reservasi_page.dart';
@@ -83,7 +82,6 @@ class MyApp extends StatelessWidget {
           name: AppRoutes.myReservations,
           page: () => const MyReservationsPage(),
         ),
-        GetPage(name: AppRoutes.adminLogin, page: () => const AdminLoginPage()),
         GetPage(
           name: AppRoutes.adminDashboard,
           page: () => const AdminDashboardPage(),

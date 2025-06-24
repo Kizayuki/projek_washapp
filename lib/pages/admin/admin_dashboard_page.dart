@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/admin_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../utils/app_routes.dart';
 
 class AdminDashboardPage extends GetView<AdminController> {
@@ -8,13 +9,23 @@ class AdminDashboardPage extends GetView<AdminController> {
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+
+    if (!authController.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed(AppRoutes.home);
+        Get.snackbar('Akses Ditolak', 'Anda tidak memiliki izin admin.');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard Admin'),
         actions: [
           IconButton(
             icon: const Icon(Icons.exit_to_app),
-            onPressed: () => controller.adminSignOut(),
+            onPressed: () => authController.signOut(),
             tooltip: 'Logout Admin',
           ),
         ],
@@ -26,7 +37,7 @@ class AdminDashboardPage extends GetView<AdminController> {
           children: [
             Obx(
               () => Text(
-                'Selamat datang, ${controller.currentAdmin.value?.fullName ?? controller.currentAdmin.value?.username ?? 'Admin'}!',
+                'Selamat datang, ${authController.currentProfile.value?.fullName ?? 'Admin'}!',
                 style: Get.textTheme.headlineSmall,
               ),
             ),
@@ -55,7 +66,7 @@ class AdminDashboardPage extends GetView<AdminController> {
                   _buildDashboardCard(
                     icon: Icons.logout,
                     title: 'Logout',
-                    onTap: () => controller.adminSignOut(),
+                    onTap: () => authController.signOut(),
                   ),
                 ],
               ),

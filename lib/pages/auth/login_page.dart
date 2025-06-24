@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import '../../utils/app_routes.dart';
 
 class LoginPage extends GetView<AuthController> {
   const LoginPage({super.key});
@@ -12,7 +11,7 @@ class LoginPage extends GetView<AuthController> {
     final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login Pengguna')),
+      appBar: AppBar(title: const Text('Login ke WashApp')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -58,16 +57,9 @@ class LoginPage extends GetView<AuthController> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  Get.toNamed(AppRoutes.register);
+                  Get.toNamed('/register');
                 },
                 child: const Text('Belum punya akun? Daftar di sini'),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () {
-                  Get.toNamed(AppRoutes.adminLogin);
-                },
-                child: const Text('Login sebagai Admin'),
               ),
             ],
           ),

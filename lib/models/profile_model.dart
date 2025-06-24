@@ -5,6 +5,7 @@ class Profile {
   final String phoneNumber;
   final String? avatarUrl;
   final DateTime? updatedAt;
+  final bool isAdmin;
 
   Profile({
     required this.id,
@@ -13,6 +14,7 @@ class Profile {
     required this.phoneNumber,
     this.avatarUrl,
     this.updatedAt,
+    this.isAdmin = false,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class Profile {
       updatedAt: json['update_at'] != null
           ? DateTime.parse(json['update_at'] as String)
           : null,
+      isAdmin: json['is_admin'] as bool? ?? false,
     );
   }
 
@@ -36,6 +39,7 @@ class Profile {
       'phone_number': phoneNumber,
       'avatar_url': avatarUrl,
       'update_at': updatedAt?.toIso8601String(),
+      'is_admin': isAdmin,
     };
   }
 }

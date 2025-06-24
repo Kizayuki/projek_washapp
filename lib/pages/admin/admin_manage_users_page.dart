@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../controllers/admin_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/profile_model.dart';
 
 class AdminManageUsersPage extends StatefulWidget {
@@ -12,82 +13,42 @@ class AdminManageUsersPage extends StatefulWidget {
 }
 
 class _AdminManageUsersPageState extends State<AdminManageUsersPage> {
-  final SupabaseClient _supabaseClient = Supabase.instance.client;
-  RxList<Profile> appUsers = <Profile>[].obs;
-  RxBool isLoadingUsers = false.obs;
+  final AdminController _adminController = Get.find<AdminController>();
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   void initState() {
     super.initState();
-    _fetchAppUsers();
-  }
-
-  Future<void> _fetchAppUsers() async {
-    isLoadingUsers.value = true;
-    try {
-      final List<dynamic> data = await _supabaseClient
-          .from('profiles')
-          .select();
-      appUsers.value = data
-          .map((json) => Profile.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat daftar pengguna aplikasi: $e');
-    } finally {
-      isLoadingUsers.value = false;
+    if (!_authController.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed('/home');
+        Get.snackbar('Akses Ditolak', 'Anda tidak memiliki izin admin.');
+      });
+    } else {
+      _adminController.fetchAppUsers();
     }
-  }
-
-  Future<void> _deleteUser(String userId) async {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Konfirmasi Hapus Pengguna'),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _supabaseClient
-                    .from('profiles')
-                    .delete()
-                    .eq('id', userId);
-                Get.snackbar(
-                  'Berhasil',
-                  'Pengguna berhasil dihapus dari profil.',
-                );
-                _fetchAppUsers();
-                Get.back();
-              } catch (e) {
-                Get.snackbar('Error', 'Gagal menghapus pengguna: $e');
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_authController.isAdmin) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Kelola Pengguna Aplikasi')),
       body: Obx(() {
-        if (isLoadingUsers.value) {
+        if (_adminController.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (appUsers.isEmpty) {
+        if (_adminController.appUsers.isEmpty) {
           return const Center(child: Text('Belum ada pengguna aplikasi.'));
         }
         return ListView.builder(
           padding: const EdgeInsets.all(16.0),
-          itemCount: appUsers.length,
+          itemCount: _adminController.appUsers.length,
           itemBuilder: (context, index) {
-            final Profile user = appUsers[index];
+            final Profile user = _adminController.appUsers[index];
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               elevation: 4,
@@ -103,13 +64,35 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage> {
                 subtitle: Text('${user.username} | ${user.phoneNumber}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteUser(user.id),
+                  onPressed: () => _showDeleteUserDialog(context, user.id),
                 ),
               ),
             );
           },
         );
       }),
+    );
+  }
+
+  void _showDeleteUserDialog(BuildContext context, String userId) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Konfirmasi Hapus Pengguna'),
+        content: const Text(
+          'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () {
+              _adminController.deleteAppUser(userId);
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
     );
   }
 }

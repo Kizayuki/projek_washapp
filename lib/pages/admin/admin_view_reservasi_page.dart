@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/reservation_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/reservation_model.dart';
 
 class AdminViewReservationsPage extends StatefulWidget {
@@ -14,15 +15,27 @@ class AdminViewReservationsPage extends StatefulWidget {
 class _AdminViewReservationsPageState extends State<AdminViewReservationsPage> {
   final ReservationController _reservationController =
       Get.find<ReservationController>();
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   void initState() {
     super.initState();
-    _reservationController.fetchAllReservations();
+    if (!_authController.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed('/home');
+        Get.snackbar('Akses Ditolak', 'Anda tidak memiliki izin admin.');
+      });
+    } else {
+      _reservationController.fetchAllReservations();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_authController.isAdmin) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Lihat Semua Reservasi')),
       body: Obx(() {
@@ -52,7 +65,7 @@ class _AdminViewReservationsPageState extends State<AdminViewReservationsPage> {
                   ),
                 ),
                 subtitle: Text(
-                  '${reservation.reservationDate.toIso8601String().split('T')[0]} - ${reservation.reservationTime.substring(0, 5)}',
+                  '${reservation.reservationDate.toIso8601String().split('T')[0]} - ${reservation.reservationTime.length >= 5 ? reservation.reservationTime.substring(0, 5) : reservation.reservationTime}',
                 ),
                 trailing: Chip(
                   label: Text(reservation.status.capitalizeFirst ?? 'Unknown'),
