@@ -1,4 +1,4 @@
-package com.example.projek_washapp
+package com.new.packagename
 
 import io.flutter.embedding.android.FlutterActivity
 
