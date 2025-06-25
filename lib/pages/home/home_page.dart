@@ -9,7 +9,6 @@ class HomePage extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ProfileController());
     final ProfileController profileController = Get.find<ProfileController>();
 
     return Scaffold(
@@ -38,11 +37,20 @@ class HomePage extends GetView<AuthController> {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Colors.blue[800],
-                      ),
+                      backgroundImage:
+                          (profile?.avatarUrl != null &&
+                              profile!.avatarUrl!.isNotEmpty)
+                          ? NetworkImage(profile.avatarUrl!) as ImageProvider
+                          : null,
+                      child:
+                          (profile?.avatarUrl == null ||
+                              profile!.avatarUrl!.isEmpty)
+                          ? Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.blue[800],
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 8),
                     Text(
