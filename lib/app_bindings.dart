@@ -10,8 +10,8 @@ class AppBindings extends Bindings {
   void dependencies() {
     Get.put(AuthController(), permanent: true);
     Get.lazyPut(() => AdminController());
-    Get.lazyPut(() => ServiceController());
+    Get.put(ServiceController(), permanent: true);
     Get.put(ReservationController(), permanent: true);
-    Get.lazyPut(() => ProfileController());
+    Get.put(ProfileController(), permanent: true);
   }
 }
