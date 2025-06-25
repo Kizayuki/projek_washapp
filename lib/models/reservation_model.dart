@@ -27,19 +27,12 @@ class Reservation {
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
     Service? serviceData;
-    if (json['service_id'] is Map<String, dynamic>) {
-      serviceData = Service.fromJson(
-        json['service_id'] as Map<String, dynamic>,
-      );
-    } else if (json['services'] is Map<String, dynamic>) {
+    if (json['services'] is Map<String, dynamic>) {
       serviceData = Service.fromJson(json['services'] as Map<String, dynamic>);
     }
 
     String? userNameData;
-    if (json['user_id'] is Map<String, dynamic> &&
-        json['user_id']['full_name'] != null) {
-      userNameData = json['user_id']['full_name'] as String;
-    } else if (json['profiles'] is Map<String, dynamic> &&
+    if (json['profiles'] is Map<String, dynamic> &&
         json['profiles']['full_name'] != null) {
       userNameData = json['profiles']['full_name'] as String;
     }

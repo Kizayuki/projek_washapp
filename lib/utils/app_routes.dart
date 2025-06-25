@@ -12,4 +12,5 @@ abstract class AppRoutes {
   static const String adminManageServices = '/admin_manage_services';
   static const String adminViewReservations = '/admin_view_reservations';
   static const String adminManageUsers = '/admin_manage_users';
+  static const String adminProfile = '/admin_profile';
 }

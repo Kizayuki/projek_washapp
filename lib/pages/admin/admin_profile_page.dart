@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/auth_controller.dart';
 import '../../controllers/profile_controller.dart';
+import '../../controllers/auth_controller.dart';
 
-class ProfilePage extends GetView<ProfileController> {
-  const ProfilePage({super.key});
+class AdminProfilePage extends GetView<ProfileController> {
+  const AdminProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +13,16 @@ class ProfilePage extends GetView<ProfileController> {
     final TextEditingController phoneNumberController = TextEditingController();
     final AuthController authController = Get.find<AuthController>();
 
+    if (!authController.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed('/home');
+        Get.snackbar('Akses Ditolak', 'Anda tidak memiliki izin admin.');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil Saya')),
+      appBar: AppBar(title: const Text('Profil Admin')),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
