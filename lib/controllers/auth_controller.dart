@@ -1,8 +1,8 @@
-// lib/controllers/auth_controller.dart
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../utils/app_routes.dart';
-import '../models/profile_model.dart';
+import '../../utils/app_routes.dart';
+import '../../models/profile_model.dart';
+import 'profile_controller.dart';
 
 class AuthController extends GetxController {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
@@ -25,8 +25,14 @@ class AuthController extends GetxController {
           event == AuthChangeEvent.initialSession) {
         currentUser.value = session?.user;
         if (session?.user != null) {
-          await _fetchCurrentProfile(session!.user!.id);
-          // PENTING: Pengalihan setelah profil dimuat
+          final profileController = Get.find<ProfileController>();
+          await profileController.loadUserProfile(
+            session!.user!.id,
+          ); // Memuat dari ProfileController
+          currentProfile.value = profileController
+              .userProfile
+              .value; // Memperbarui currentProfile di AuthController
+
           if (currentProfile.value?.isAdmin == true) {
             Get.offAllNamed(AppRoutes.adminDashboard);
           } else {
@@ -41,32 +47,12 @@ class AuthController extends GetxController {
     });
   }
 
-  Future<void> _fetchCurrentProfile(String userId) async {
-    try {
-      final response = await _supabaseClient
-          .from('profiles')
-          .select(
-            '*, id',
-          ) // Pastikan 'id' juga dipilih jika tidak dijamin ada di response
-          .eq('id', userId)
-          .single();
-      currentProfile.value = Profile.fromJson(response as Map<String, dynamic>);
-    } on PostgrestException catch (e) {
-      Get.snackbar('Error Profil', 'Gagal memuat data profil: ${e.message}');
-      currentProfile.value = null;
-    } catch (e) {
-      Get.snackbar('Error Profil', 'Gagal memuat data profil (umum): $e');
-      currentProfile.value = null;
-    }
-  }
-
   Future<void> signIn(String email, String password) async {
     isLoading.value = true;
     try {
       final AuthResponse response = await _supabaseClient.auth
           .signInWithPassword(email: email, password: password);
       if (response.user != null) {
-        // Redireksi akan ditangani oleh _initAuthListener setelah profil dimuat
         Get.snackbar('Berhasil', 'Login berhasil!');
       }
     } on AuthException catch (e) {
@@ -117,7 +103,6 @@ class AuthController extends GetxController {
     try {
       await _supabaseClient.auth.signOut();
       Get.snackbar('Berhasil', 'Logout berhasil!');
-      // Redireksi ke login akan ditangani oleh _initAuthListener
     } on AuthException catch (e) {
       Get.snackbar('Error Logout', e.message);
     } catch (e) {

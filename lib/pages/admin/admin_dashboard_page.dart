@@ -64,6 +64,11 @@ class AdminDashboardPage extends GetView<AdminController> {
                     onTap: () => Get.toNamed(AppRoutes.adminManageUsers),
                   ),
                   _buildDashboardCard(
+                    icon: Icons.person,
+                    title: 'Profil Admin',
+                    onTap: () => Get.toNamed(AppRoutes.adminProfile),
+                  ),
+                  _buildDashboardCard(
                     icon: Icons.logout,
                     title: 'Logout',
                     onTap: () => authController.signOut(),

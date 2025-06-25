@@ -17,6 +17,7 @@ import 'pages/admin/admin_dashboard_page.dart';
 import 'pages/admin/admin_manage_services_page.dart';
 import 'pages/admin/admin_view_reservasi_page.dart';
 import 'pages/admin/admin_manage_users_page.dart';
+import 'pages/admin/admin_profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,6 +98,10 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: AppRoutes.adminManageUsers,
           page: () => const AdminManageUsersPage(),
+        ),
+        GetPage(
+          name: AppRoutes.adminProfile,
+          page: () => const AdminProfilePage(),
         ),
       ],
       initialBinding: AppBindings(),

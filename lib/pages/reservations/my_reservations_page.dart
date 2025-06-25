@@ -12,14 +12,14 @@ class MyReservationsPage extends StatefulWidget {
 }
 
 class _MyReservationsPageState extends State<MyReservationsPage> {
-  // Pastikan Get.find() dipanggil setelah controller diinisialisasi
-  final ReservationController _reservationController =
+  ReservationController _reservationController =
       Get.find<ReservationController>();
   final String? userId = Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
     super.initState();
+    _reservationController = Get.find<ReservationController>();
     if (userId != null) {
       _reservationController.fetchUserReservations(userId!);
     } else {
@@ -29,6 +29,10 @@ class _MyReservationsPageState extends State<MyReservationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<ReservationController>()) {
+      Get.put(ReservationController());
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Reservasi Saya')),
       body: Obx(() {
@@ -68,7 +72,7 @@ class _MyReservationsPageState extends State<MyReservationsPage> {
                       style: Get.textTheme.titleMedium,
                     ),
                     Text(
-                      'Waktu: ${reservation.reservationTime.substring(0, 5)}',
+                      'Waktu: ${reservation.reservationTime.length >= 5 ? reservation.reservationTime.substring(0, 5) : reservation.reservationTime}', // Hanya jam:menit
                       style: Get.textTheme.titleMedium,
                     ),
                     Text(

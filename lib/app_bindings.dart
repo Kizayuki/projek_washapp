@@ -1,4 +1,3 @@
-// lib/app_bindings.dart
 import 'package:get/get.dart';
 import 'controllers/admin_controller.dart';
 import 'controllers/auth_controller.dart';
@@ -12,7 +11,7 @@ class AppBindings extends Bindings {
     Get.put(AuthController(), permanent: true);
     Get.lazyPut(() => AdminController());
     Get.lazyPut(() => ServiceController());
-    Get.lazyPut(() => ReservationController()); // Pastikan BARIS INI ADA!
+    Get.put(ReservationController(), permanent: true);
     Get.lazyPut(() => ProfileController());
   }
 }

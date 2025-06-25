@@ -30,30 +30,42 @@ class ReservationController extends GetxController {
         'status': 'pending',
         'vehicle_type': vehicleType,
       });
-      Get.snackbar('Berhasil', 'Reservasi Anda berhasil dibuat!');
-      fetchUserReservations(userId);
+      await fetchUserReservations(userId);
       Get.back();
+    } on PostgrestException catch (e) {
+      print('PostgrestException in createReservation: ${e.message}');
+      Get.snackbar('Error Membuat Reservasi', e.message);
     } catch (e) {
-      Get.snackbar('Error', 'Gagal membuat reservasi: $e');
+      print('General Error in createReservation: $e');
+      Get.snackbar('Error', 'Terjadi kesalahan tidak dikenal: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> fetchUserReservations(String userId) async {
+    print('Fetching user reservations for userId: $userId');
     isLoading.value = true;
     try {
       final List<dynamic> data = await _supabaseClient
           .from('reservations')
-          .select('*, services(*)')
+          .select('*, services(*), profiles(full_name)')
           .eq('user_id', userId)
           .order('reservation_date', ascending: false)
           .order('reservation_time', ascending: false);
+      print('Fetched user reservations data: $data');
       userReservations.value = data
           .map((json) => Reservation.fromJson(json as Map<String, dynamic>))
           .toList();
+    } on PostgrestException catch (e) {
+      print('PostgrestException in fetchUserReservations: ${e.message}');
+      Get.snackbar('Error', 'Gagal memuat reservasi Anda: ${e.message}');
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat reservasi Anda: $e');
+      print('General Error in fetchUserReservations: $e');
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan memuat reservasi Anda (umum): $e',
+      );
     } finally {
       isLoading.value = false;
     }

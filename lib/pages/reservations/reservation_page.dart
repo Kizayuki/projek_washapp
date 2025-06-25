@@ -12,9 +12,8 @@ class ReservationPage extends StatefulWidget {
 }
 
 class _ReservationPageState extends State<ReservationPage> {
-  final ReservationController _reservationController =
-      Get.find<ReservationController>();
-  final ServiceController _serviceController = Get.find<ServiceController>();
+  late ReservationController _reservationController;
+  late ServiceController _serviceController;
 
   Service? _selectedService;
   DateTime? _selectedDate;
@@ -24,6 +23,9 @@ class _ReservationPageState extends State<ReservationPage> {
   @override
   void initState() {
     super.initState();
+    _reservationController = Get.find<ReservationController>();
+    _serviceController = Get.find<ServiceController>();
+
     if (Get.arguments is Service) {
       _selectedService = Get.arguments as Service;
     }
@@ -79,16 +81,44 @@ class _ReservationPageState extends State<ReservationPage> {
     final String timeString =
         '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}:00';
 
-    _reservationController.createReservation(
-      _selectedService!.id,
-      _selectedDate!,
-      timeString,
-      _vehicleTypeController.text.trim(),
-    );
+    _reservationController
+        .createReservation(
+          _selectedService!.id,
+          _selectedDate!,
+          timeString,
+          _vehicleTypeController.text.trim(),
+        )
+        .then((_) {
+          Get.snackbar(
+            'Berhasil!',
+            'Reservasi Anda telah berhasil dibuat.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+        })
+        .catchError((error) {
+          Get.snackbar(
+            'Gagal!',
+            'Terjadi kesalahan saat membuat reservasi.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<ReservationController>()) {
+      Get.put(ReservationController());
+      _reservationController = Get.find<ReservationController>();
+    }
+    if (!Get.isRegistered<ServiceController>()) {
+      Get.lazyPut(() => ServiceController());
+      _serviceController = Get.find<ServiceController>();
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Buat Reservasi')),
       body: SingleChildScrollView(
@@ -133,7 +163,7 @@ class _ReservationPageState extends State<ReservationPage> {
             Text('Detail Reservasi', style: Get.textTheme.titleLarge),
             const SizedBox(height: 16),
             InkWell(
-              onTap: () => _selectDate(context),
+              onTap: () => this._selectDate(context),
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: 'Tanggal Reservasi',
@@ -150,7 +180,7 @@ class _ReservationPageState extends State<ReservationPage> {
             ),
             const SizedBox(height: 16),
             InkWell(
-              onTap: () => _selectTime(context),
+              onTap: () => this._selectTime(context),
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: 'Waktu Reservasi',
