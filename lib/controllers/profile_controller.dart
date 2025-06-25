@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/profile_model.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:typed_data';
 
 class ProfileController extends GetxController {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
@@ -88,18 +88,19 @@ class ProfileController extends GetxController {
         return;
       }
 
+      final Uint8List fileBytes = await image.readAsBytes();
+
       final String fileName =
           '${DateTime.now().millisecondsSinceEpoch}.${image.name.split('.').last}';
-      final String filePath = '$userId/$fileName'; // Folder berdasarkan user ID
+      final String filePath = '$userId/$fileName';
 
-      final File file = File(image.path);
       await _supabaseClient.storage
           .from('avatars')
-          .upload(
+          .uploadBinary(
             filePath,
-            file,
+            fileBytes,
             fileOptions: const FileOptions(upsert: true),
-          ); // Gunakan upsert untuk menimpa jika sudah ada
+          );
 
       final String publicUrl = _supabaseClient.storage
           .from('avatars')
@@ -116,8 +117,10 @@ class ProfileController extends GetxController {
       Get.snackbar('Berhasil', 'Foto profil berhasil diperbarui!');
       await loadUserProfile(userId);
     } on StorageException catch (e) {
+      print('StorageException in uploadAvatar: ${e.message}');
       Get.snackbar('Error Upload', 'Gagal mengunggah foto: ${e.message}');
     } catch (e) {
+      print('General Error in uploadAvatar: $e');
       Get.snackbar('Error', 'Terjadi kesalahan saat mengunggah foto: $e');
     } finally {
       isUploadingAvatar.value = false;
